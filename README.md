@@ -1,15 +1,15 @@
 # Class-Surveillance-System-
-```md
+
 # Class Surveillance System
 
 ## 🔍 Overview
 This system is designed for real-time classroom monitoring, integrating deep learning models to automate attendance and detect distractions. It uses PHP for the frontend and Flask APIs for model inference.
 
 ## 📌 Features
-- **Face Recognition** (Attendance Marking)
-- **Mobile Phone Detection**
-- **Sleep Detection**
-- **Real-time Surveillance & Alerts**
+- Face Recognition (Attendance Marking)
+- Mobile Phone Detection
+- Sleep Detection
+- Real-time Surveillance & Alerts
 
 ## ⚙️ Models Used
 | Model  | Purpose  | Framework |
@@ -22,6 +22,6 @@ This system is designed for real-time classroom monitoring, integrating deep lea
 
 ## 🛠️ Installation
 ### 1️⃣ Clone the Repository
-```sh
+
 git clone https://github.com/Umar43/Class-Surveillance-System.git
 cd Class-Surveillance-System
