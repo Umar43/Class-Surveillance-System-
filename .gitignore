@@ -6,3 +6,6 @@ __pycache__/
 
 # macOS system file
 .DS_Store
+.DS_Store
+.vscode/
+__pycache__/
