@@ -11,6 +11,7 @@ from facenet_pytorch import MTCNN  # Face detection
 from ultralytics import YOLO  # Object detection
 from sort import Sort  # Object tracking
 import os  # File system operations
+import json  # Read the saved class names
 import torch.nn as nn  # Neural networks
 from torchvision import transforms, datasets  # Image transformations
 import torch
@@ -41,23 +42,30 @@ MOBILE_MERGE_THRESHOLD = 1  # Seconds for phone event merging
 SLEEP_MERGE_THRESHOLD = 1  # Seconds for sleep event merging
 BODY_MERGE_THRESHOLD = 5  # Body position averaging
 
+# ---------- Paths ----------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Folder of this file (API_endpoints)
+MODELS_DIR = os.path.join(BASE_DIR, "..", "Models")  # Folder with the model weights
+
+# ---------- Camera Source ----------
+# Camera number (0 = built-in webcam) or a video file path, set with the CAMERA_SOURCE environment variable
+CAMERA_SOURCE = os.environ.get("CAMERA_SOURCE", "0")
+if CAMERA_SOURCE.isdigit():
+    CAMERA_SOURCE = int(CAMERA_SOURCE)
+
 # ---------- Device Config ----------
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # Use GPU if available
 
 # ---------- Dataset Setup ----------
-data_dir = r"/Users/umar/Desktop/FYP/Project/AFDB_face_dataset"  # Dataset path
 train_transform = transforms.Compose([  # Image preprocessing
     transforms.Resize((112, 96)),  # Resize to model input size
     transforms.ToTensor(),  # Convert to tensor
     transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),  # Normalize
 ])
 
-train_dataset = datasets.ImageFolder(  # Load training dataset
-    root=os.path.join(data_dir,"train"),
-    transform=train_transform
-)
 
-class_names_original = train_dataset.classes  # Get class names
+# Load the class names from a saved file instead of reading the dataset folder
+with open(os.path.join(BASE_DIR, "classes.json")) as f:
+    class_names_original = json.load(f)  # Get class names
 valid_students = ["umar", "Ameer", "Naeem", "Abdullah"]  # Allowed students
 registration_map = {  # Student ID mapping
     "umar": "201980043",
@@ -246,12 +254,12 @@ face_model = CustomLResNet_Occ_FC(  # Initialize face model
     layers=[3, 4, 14, 3],
     filter_list=[64, 64, 128, 256, 512, 101]
 ).to(device)
-face_model.load_state_dict(torch.load("from_model_28.pth", map_location=device))  # Load weights
+face_model.load_state_dict(torch.load(os.path.join(MODELS_DIR, "from_model_28.pth"), map_location=device))  # Load weights
 face_model.eval()  # Set evaluation mode
 
-mobile_model = YOLO("phone.pt")  # Load phone detection model
-sleep_model = YOLO("sleep.pt")  # Load sleep detection model
-body_model = YOLO("yolov8n.pt")  # Load body detection model
+mobile_model = YOLO(os.path.join(MODELS_DIR, "phone.pt"))  # Load phone detection model
+sleep_model = YOLO(os.path.join(MODELS_DIR, "sleep.pt"))  # Load sleep detection model
+body_model = YOLO(os.path.join(MODELS_DIR, "yolov8n.pt"))  # Load body detection model
 
 mtcnn = MTCNN(  # Configure face detector
     keep_all=True,
@@ -645,7 +653,7 @@ def draw_annotations(frame, faces, mobiles, sleeps, bodies):
 @app.route('/video_feed')
 def video_feed():
     def generate():
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(CAMERA_SOURCE)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
         
